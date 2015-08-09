@@ -1,4 +1,5 @@
 using FantasyFootball
+using Base.Test
 
 # Offensive scoring
 @test score_off() == 0
