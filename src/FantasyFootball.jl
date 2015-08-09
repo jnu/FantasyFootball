@@ -3,11 +3,11 @@
 module FantasyFootball
 
   # Exports
-  # export score_off
+  export score_off
 
 
   # Sources
-  require("point_system.jl")
-  require("scoring.jl")
+  include("point_system.jl")
+  include("scoring.jl")
 
 end

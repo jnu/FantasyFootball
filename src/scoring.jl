@@ -6,7 +6,7 @@ function score_off(; rush_yds = 0, rush_td = 0, rec_yds = 0, rec_td = 0, pass_yd
   (
     div(rush_yds, RUSH_YDS_BATCH) * RUSH_YDS_PTS +
     rush_td * RUSH_TD_PTS +
-    div(rec_yds, REC_YDS_BATCH) * REC_YDS_BATCH +
+    div(rec_yds, REC_YDS_BATCH) * REC_YDS_PTS +
     rec_td * REC_TD_PTS +
     div(pass_yds, PASS_YDS_BATCH) * PASS_YDS_PTS +
     pass_td * PASS_TD_PTS +
