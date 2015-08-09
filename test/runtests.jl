@@ -1,0 +1,11 @@
+using FantasyFootball
+
+tests = [
+  "scoring"
+]
+
+for t in tests
+  tfile = string(t, ".jl")
+  println(" * $(tfile) ...")
+  include(tfile)
+end
