@@ -3,8 +3,9 @@
 module FantasyFootball
 
   # Exports
-  export score_off
-  export Season
+  export score_off,
+         Season,
+         filter
 
 
   # Sources
