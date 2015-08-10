@@ -4,10 +4,12 @@ module FantasyFootball
 
   # Exports
   export score_off
+  export Season
 
 
   # Sources
   include("point_system.jl")
   include("scoring.jl")
+  include("season.jl")
 
 end

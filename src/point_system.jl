@@ -1,5 +1,6 @@
 # Scoring constants
 
+# Offense
 const RUSH_YDS_BATCH = 10
 const RUSH_YDS_PTS = 1
 const RUSH_TD_PTS = 6
@@ -14,3 +15,17 @@ const SACK_PTS = 0
 const KR_TD_PTS = 6
 const PR_TD_PTS = 6
 const FUM_L_PTS = -2
+
+# Defense
+const DEF_KR_TD_PTS = 6
+const DEF_PR_TD_PTS = 6
+const INT_TD_PTS = 6
+const FUM_TD_PTS = 6
+const PUNT_TD_PTS = 6
+const DEF_INT_PTS = 2
+const DEF_FUM_R_PTS = 2
+const DEF_SFTY_PTS = 2
+const DEF_SACK_PTS = 1
+const PTS_ALLOWED_PTS = [
+
+]

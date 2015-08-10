@@ -1,11 +1,13 @@
 using FantasyFootball
 
 tests = [
-  "scoring"
+  "scoring",
+  "season"
 ]
 
 for t in tests
   tfile = string(t, ".jl")
-  println(" * $(tfile) ...")
+  print(" * $(tfile) ... ")
   include(tfile)
+  println("ok")
 end
