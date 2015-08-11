@@ -11,6 +11,6 @@ module FantasyFootball
   # Sources
   include("point_system.jl")
   include("scoring.jl")
-  include("season.jl")
+  include("Season.jl")
 
 end
