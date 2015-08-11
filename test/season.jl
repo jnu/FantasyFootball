@@ -26,8 +26,8 @@ module TestSeason
   # filter
   nwe14 = filter(s14, "NWE")
   @test nwe14.k[:Name] == ["Stephen Gostkowski"]
-  # @test nwe14.def[:Name] == ["NWE"]
-  # @test nwe14.st[:Name] == ["NWE"]
+  @test nwe14.def[:team_abbr] == ["NWE"]
+  @test nwe14.st[:team_abbr] == ["NWE"]
   @test nwe14.qb[:Name] == ["Jimmy Garoppolo", "Tom Brady"]
   @test length(nwe14.te[:Name]) == 4
   @test length(nwe14.wr[:Name]) == 6

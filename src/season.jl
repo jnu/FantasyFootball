@@ -1,10 +1,53 @@
 using DataFrames
 using DataFramesMeta
 
+
+const ABBR_LOOKUP = [
+  "Arizona Cardinals" => "ARI",
+  "Atlanta Falcons" => "ATL",
+  "Baltimore Ravens" => "BAL",
+  "Buffalo Bills" => "BUF",
+  "Carolina Panthers" => "CAR",
+  "Chicago Bears" => "CHI",
+  "Cincinnati Bengals" => "CIN",
+  "Cleveland Browns" => "CLE",
+  "Dallas Cowboys" => "DAL",
+  "Denver Broncos" => "DEN",
+  "Detroit Lions" => "DET",
+  "Green Bay Packers" => "GNB",
+  "Houston Texans" => "HOU",
+  "Indianapolis Colts" => "IND",
+  "Jacksonville Jaguars" => "JAC",
+  "Kansas City Chiefs" => "KAN",
+  "Miami Dolphins" => "MIA",
+  "Minnesota Vikings" => "MIN",
+  "New England Patriots" => "NWE",
+  "New Orleans Saints" => "NOR",
+  "New York Giants" => "NYG",
+  "New York Jets" => "NYJ",
+  "Oakland Raiders" => "OAK",
+  "Philadelphia Eagles" => "PHI",
+  "Pittsburgh Steelers" => "PIT",
+  "San Diego Chargers" => "SDG",
+  "San Francisco 49ers" => "SFO",
+  "Seattle Seahawks" => "SEA",
+  "St. Louis Rams" => "STL",
+  "Tampa Bay Buccaneers" => "TAM",
+  "Tennessee Titans" => "TEN",
+  "Washington Redskins" => "WAS"
+]
+
 # Get the table logical path relative to current script by year and position
 table_logical_path(year::String, position::String) = joinpath(dirname(@__FILE__), "..", "data", year, position)
 # Get the FS path relative to the current location for the year and position
 table_path(year::String, position::String) = string(table_logical_path(year, position), ".csv")
+
+# Ensure that tables have a normalized key for access by team
+function with_team_abbr!(table)
+  table[:team_abbr] = map(team -> length(team) == 3 ? team : ABBR_LOOKUP[team], table[:Team])
+  table
+end
+
 
 # Season type - holds tables for positions in a given year
 immutable Season
@@ -17,7 +60,7 @@ immutable Season
   k::DataFrame
 
   function Season(year::String)
-    tables = map(p -> readtable(table_path(year, p)), ["QB", "RB", "WR", "TE", "ST", "DEF", "K"])
+    tables = map(p -> with_team_abbr!(readtable(table_path(year, p))), ["QB", "RB", "WR", "TE", "ST", "DEF", "K"])
     new(tables[1], tables[2], tables[3], tables[4], tables[5], tables[6], tables[7])
   end
 
@@ -32,13 +75,13 @@ end
 
 # Filter a season by team.
 function filter(season::Season, team::String)
-  qb = @where(season.qb, :Team .== team)
-  rb = @where(season.rb, :Team .== team)
-  wr = @where(season.wr, :Team .== team)
-  te = @where(season.te, :Team .== team)
-  st = @where(season.st, :Team .== team)
-  def = @where(season.def, :Team .== team)
-  k = @where(season.k, :Team .== team)
+  qb = @where(season.qb, :team_abbr .== team)
+  rb = @where(season.rb, :team_abbr .== team)
+  wr = @where(season.wr, :team_abbr .== team)
+  te = @where(season.te, :team_abbr .== team)
+  st = @where(season.st, :team_abbr .== team)
+  def = @where(season.def, :team_abbr .== team)
+  k = @where(season.k, :team_abbr .== team)
 
   Season(qb, rb, wr, te, st, def, k)
 end
