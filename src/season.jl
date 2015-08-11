@@ -86,3 +86,10 @@ function filter(season::Season, team::String)
   Season(qb, rb, wr, te, st, def, k)
 end
 
+function score(season::Season)
+  # XXX macro to clean this up
+  qb = @transform(season.qb, score = score_off(pass_yds=:Yds, rush_yds=:RushYds, sack=:Sack, fum_l=:FumL, rush_td=:RushTD, pass_td=:TD, pass_int=:Int))
+  # etc for all positions
+
+end
+
