@@ -2,7 +2,7 @@ using FantasyFootball
 
 tests = [
   "scoring",
-  "Season"
+  "season"
 ]
 
 for t in tests
