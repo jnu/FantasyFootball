@@ -19,6 +19,8 @@ function score_off(; rush_yds = 0, rush_td = 0, rec_yds = 0, rec_td = 0, pass_yd
 end
 
 
+
+
 # Score a team's defense
 #  - No blocks
 function score_def(; kr_td = 0, pr_td = 0, int_td = 0, fum_td = 0, block = 0)

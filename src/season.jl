@@ -37,6 +37,20 @@ const ABBR_LOOKUP = [
   "Washington Redskins" => "WAS"
 ]
 
+const COLUMN_MAP = {
+  (:rush_yds, :RushYds),
+  (:rush_td, :RushTD),
+  (:rec_yds, :RecYds),
+  (:rec_td, :RecTD),
+  (:pass_yds, :Yds),
+  (:pass_td, :TD),
+  (:pass_int, :Int),
+  (:sack, :Sack),
+  (:fum_l, :FumL),
+  (:pr_td, :PRTD),
+  (:kr_td, :KRTD)
+}
+
 # Get the table logical path relative to current script by year and position
 table_logical_path(year::String, position::String) = joinpath(dirname(@__FILE__), "..", "data", year, position)
 # Get the FS path relative to the current location for the year and position
@@ -75,21 +89,20 @@ end
 
 # Filter a season by team.
 function filter(season::Season, team::String)
-  qb = @where(season.qb, :team_abbr .== team)
-  rb = @where(season.rb, :team_abbr .== team)
-  wr = @where(season.wr, :team_abbr .== team)
-  te = @where(season.te, :team_abbr .== team)
-  st = @where(season.st, :team_abbr .== team)
-  def = @where(season.def, :team_abbr .== team)
-  k = @where(season.k, :team_abbr .== team)
+  filtered = [@where(getfield(season, f), :team_abbr .== team) for f in names(season)]
+  Season(filtered...)
+end
 
-  Season(qb, rb, wr, te, st, def, k)
+function score_off_table(df)
+  # Julia doesn't support conditional list comprehensions or tuple destructuring,
+  # so this is a bit of a mess. TODO - implement in julia?
+  columns = [(pair[1], haskey(df, pair[2]) ? df[pair[2]] : 0) for pair in COLUMN_MAP]
+  @transform(df, score = score_off(; columns...))
 end
 
 function score(season::Season)
   # XXX macro to clean this up
-  qb = @transform(season.qb, score = score_off(pass_yds=:Yds, rush_yds=:RushYds, sack=:Sack, fum_l=:FumL, rush_td=:RushTD, pass_td=:TD, pass_int=:Int))
-  # etc for all positions
-
+  scored = [score_off_table(getfield(season, f)) for f in names(season)]
+  Season(scored...)
 end
 
