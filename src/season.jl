@@ -1,5 +1,10 @@
+include("scoring.jl")
 using DataFrames
 using DataFramesMeta
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Constant table data
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 const ABBR_LOOKUP = [
@@ -51,17 +56,36 @@ const COLUMN_MAP = {
   (:kr_td, :KRTD)
 }
 
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Private helpers
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 # Get the table logical path relative to current script by year and position
 table_logical_path(year::String, position::String) = joinpath(dirname(@__FILE__), "..", "data", year, position)
+
 # Get the FS path relative to the current location for the year and position
 table_path(year::String, position::String) = string(table_logical_path(year, position), ".csv")
 
 # Ensure that tables have a normalized key for access by team
-function with_team_abbr!(table)
-  table[:team_abbr] = map(team -> length(team) == 3 ? team : ABBR_LOOKUP[team], table[:Team])
-  table
+function with_team_abbr!(df::DataFrame)
+  # XXX Can't use @transform for this?
+  df[:team_abbr] = map(team -> length(team) == 3 ? team : ABBR_LOOKUP[team], df[:Team])
+  df
 end
 
+# Add a fantasy score column to the data frame (offensive)
+function score_off_table(df::DataFrame)
+  # Julia doesn't support conditional list comprehensions or tuple destructuring,
+  # so this is a bit of a mess. TODO - implement in julia?
+  columns = [(pair[1], haskey(df, pair[2]) ? df[pair[2]] : 0) for pair in COLUMN_MAP]
+  @transform(df, score = score_off(; columns...))
+end
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Type def
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Season type - holds tables for positions in a given year
 immutable Season
@@ -87,22 +111,20 @@ immutable Season
   end
 end
 
-# Filter a season by team.
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Public functions on Seasons
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# Filter a season by team
 function filter(season::Season, team::String)
   filtered = [@where(getfield(season, f), :team_abbr .== team) for f in names(season)]
   Season(filtered...)
 end
 
-function score_off_table(df)
-  # Julia doesn't support conditional list comprehensions or tuple destructuring,
-  # so this is a bit of a mess. TODO - implement in julia?
-  columns = [(pair[1], haskey(df, pair[2]) ? df[pair[2]] : 0) for pair in COLUMN_MAP]
-  @transform(df, score = score_off(; columns...))
-end
-
+# Add fantasy score column to all frames in a season
 function score(season::Season)
-  # XXX macro to clean this up
+  # TODO - split def and off
   scored = [score_off_table(getfield(season, f)) for f in names(season)]
   Season(scored...)
 end
-

@@ -1,3 +1,5 @@
+include("../src/point_system.jl")
+
 # Score an offensive player
 # Missing (not in stats, so can't be considered):
 #  - 2pt Conversions
@@ -17,9 +19,6 @@ function score_off(; rush_yds = 0, rush_td = 0, rec_yds = 0, rec_td = 0, pass_yd
     kr_td * KR_TD_PTS
   )
 end
-
-
-
 
 # Score a team's defense
 #  - No blocks
