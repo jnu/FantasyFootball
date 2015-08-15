@@ -13,36 +13,37 @@ module TestSeason
 
   @test typeof(s10) == Season
   @test typeof(s10s) == Season
-  @test typeof(s10.qb) == DataFrame
-  @test typeof(s10s.qb) == DataFrame
-  @test typeof(s10.rb) == DataFrame
-  @test typeof(s10.te) == DataFrame
-  @test typeof(s10.wr) == DataFrame
-  @test typeof(s10.st) == DataFrame
-  @test typeof(s10.def) == DataFrame
-  @test typeof(s10.k) == DataFrame
+  @test typeof(s10.off.qb) == DataFrame
+  @test typeof(s10s.off.qb) == DataFrame
+  @test typeof(s10.off.rb) == DataFrame
+  @test typeof(s10.off.te) == DataFrame
+  @test typeof(s10.off.wr) == DataFrame
+  #@test typeof(s10.st) == DataFrame
+  @test typeof(s10.def.def) == DataFrame
+  @test typeof(s10.def.wr) == DataFrame
+  @test typeof(s10.k.k) == DataFrame
 
 
   # filter
   nwe14 = filter(s14, "NWE")
-  @test nwe14.k[:Name] == ["Stephen Gostkowski"]
-  @test nwe14.def[:team_abbr] == ["NWE"]
-  @test nwe14.st[:team_abbr] == ["NWE"]
-  @test nwe14.qb[:Name] == ["Jimmy Garoppolo", "Tom Brady"]
-  @test length(nwe14.te[:Name]) == 4
-  @test length(nwe14.wr[:Name]) == 6
-  @test length(nwe14.rb[:Name]) == 7
+  @test nwe14.k.k[:Name] == ["Stephen Gostkowski"]
+  @test nwe14.def.def[:team_abbr] == ["NWE"]
+  # @test nwe14.st[:team_abbr] == ["NWE"]
+  @test nwe14.off.qb[:Name] == ["Jimmy Garoppolo", "Tom Brady"]
+  @test length(nwe14.off.te[:Name]) == 4
+  @test length(nwe14.off.wr[:Name]) == 6
+  @test length(nwe14.off.rb[:Name]) == 7
 
 
   # score
   nwe14s = score(nwe14)
-  @test sort(nwe14s.qb[:score]) == [11, 277]
-  @test sort(nwe14s.wr[:score]) == [0, 3, 14, 26, 127, 135]
-  @test sort(nwe14s.te[:score]) == [0, 4, 49, 160]
-  @test sort(nwe14s.rb[:score]) == [4, 5, 14, 48, 71, 87, 113]
-  # TODO - implement def / st / k scoring
+  @test sort(nwe14s.off.qb[:score]) == [11, 277]
+  @test sort(nwe14s.off.wr[:score]) == [0, 3, 14, 26, 127, 135]
+  @test sort(nwe14s.off.te[:score]) == [0, 4, 49, 160]
+  @test sort(nwe14s.off.rb[:score]) == [4, 5, 14, 48, 71, 87, 113]
   #@test sort(nwe14s.st[:score]) == [-1]
-  #@test sort(nwe14s.k[:score]) == [-1]
+  @test sort(nwe14s.k.k[:score]) == [49]
+  # TODO: add s/t scoring to def
   #@test sort(nwe14s.def[:score]) == [-1]
 
 

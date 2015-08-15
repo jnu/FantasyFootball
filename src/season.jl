@@ -3,6 +3,48 @@ using DataFrames
 using DataFramesMeta
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Type def
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+abstract Squad
+
+immutable Offense <: Squad
+  qb::DataFrame
+  rb::DataFrame
+  wr::DataFrame
+  te::DataFrame
+end
+
+immutable DefenseST <: Squad
+  def::DataFrame
+  wr::DataFrame
+end
+
+immutable Kicker <: Squad
+  k::DataFrame
+end
+
+# Season type - holds tables for positions in a given year
+immutable Season
+  off::Offense
+  def::DefenseST
+  k::Kicker
+
+  function Season(year::String)
+    tables = map(p -> with_team_abbr!(readtable(table_path(year, p))), ["QB", "RB", "WR", "TE", "DEF", "K"])
+    Season(tables[1], tables[2], tables[3], tables[4], tables[5], tables[6])
+  end
+
+  function Season(year::Int64)
+    Season(string(year))
+  end
+
+  function Season(qb::DataFrame, rb::DataFrame, wr::DataFrame, te::DataFrame, def::DataFrame, k::DataFrame)
+    new(Offense(qb, rb, wr, te), DefenseST(def, wr), Kicker(k))
+  end
+end
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Constant table data
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -42,7 +84,8 @@ const ABBR_LOOKUP = [
   "Washington Redskins" => "WAS"
 ]
 
-const COLUMN_MAP = {
+const OFF_COL_MAP = {
+  # Offensive
   (:rush_yds, :RushYds),
   (:rush_td, :RushTD),
   (:rec_yds, :RecYds),
@@ -52,8 +95,32 @@ const COLUMN_MAP = {
   (:pass_int, :Int),
   (:sack, :Sack),
   (:fum_l, :FumL),
+  # Def / ST
   (:pr_td, :PRTD),
   (:kr_td, :KRTD)
+}
+
+const DEF_ST_COL_MAP = {
+  (:pr_td, :PRTD),
+  (:kr_td, :KRTD),
+  (:games, :G),
+  (:papg, symbol("Pts/G")),
+  (:int_td, :IntTD),
+  (:fum_td, :DefTD), # not quite right
+  (:sack, :Sack)
+  # (:sfty, :Safety) # Not available?
+}
+
+const K_COL_MAP = {
+  (:xp_made, :XPM),
+  (:xp_att, :XPA),
+  (:fg_made, :FGM),
+  (:fg_att, :FGA),
+  (:f0019, symbol("M0-19")),
+  (:f2029, symbol("M20-29")),
+  (:f3039, symbol("M30-39")),
+  (:f4049, symbol("M40-49")),
+  (:f50, symbol("M50+"))
 }
 
 
@@ -75,79 +142,50 @@ function with_team_abbr!(df::DataFrame)
 end
 
 # Add a fantasy score column to the data frame
-function score_table(df::DataFrame, f::Function)
+function score_table(df::DataFrame, col_map::Array, f::Function,)
   # Julia doesn't support conditional list comprehensions or tuple destructuring,
   # so this is a bit of a mess. TODO - implement in julia?
-  columns = [(pair[1], haskey(df, pair[2]) ? df[pair[2]] : 0) for pair in COLUMN_MAP]
+  columns = [(pair[1], haskey(df, pair[2]) ? df[pair[2]] : 0) for pair in col_map]
   @transform(df, score = f(; columns...))
 end
 
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Type def
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-abstract Squad
-
-immutable Offense <: Squad
-  qb::DataFrame
-  rb::DataFrame
-  wr::DataFrame
-  te::DataFrame
-end
-
-immutable Defense <: Squad
-  def::DataFrame
-end
-
-immutable SpecialTeams <: Squad
-  st::DataFrame
-  off::DataFrame
-end
-
-immutable Kicker <: Squad
-  k::DataFrame
-end
-
-# Season type - holds tables for positions in a given year
-immutable Season
-  off::Offense
-  def::Defense
-  st::SpecialTeams
-  k::Kicker
-
-  function Season(year::String)
-    tables = map(p -> with_team_abbr!(readtable(table_path(year, p))), ["QB", "RB", "WR", "TE", "ST", "DEF", "K"])
-    new(tables[1], tables[2], tables[3], tables[4], tables[5], tables[6], tables[7])
-  end
-
-  function Season(year::Int64)
-    Season(string(year))
-  end
-
-  function Season(qb::DataFrame, rb::DataFrame, wr::DataFrame, te::DataFrame, st::DataFrame, def::DataFrame, k::DataFrame)
-    new(Offense(qb, rb, wr, te), Defense(def), SpecialTeams(st, off), Kicker(k))
-  end
+function score_squad(squad::Squad, col_map::Array, score::Function)
+  [score_table(getfield(squad, f), col_map, score) for f in names(squad)]
 end
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Public functions on Seasons
+# Public functions on Seasons and Squads
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# Filter a squad by team
+function filter_squad(squad::Squad, team::String)
+  [@where(getfield(squad, f), :team_abbr .== team) for f in names(squad)]
+end
 
 # Filter a season by team
 function filter(season::Season, team::String)
-  filtered = [@where(getfield(season, f), :team_abbr .== team) for f in names(season)]
-  Season(filtered...)
+  # FIXME: Filter defense without wr
+  def = filter_squad(season.def, team)[1]
+  Season([filter_squad(season.off, team), def, filter_squad(season.k, team)]...)
 end
 
 # Add fantasy score column to all frames in a season
 function score(season::Season)
-  scored = [score(season.off), score(season.def), score(season.st), score(season.k)]
+  scored = [score(season.off), score(season.def), score(season.k)]
   Season(scored...)
 end
 
-score(squad::Offense) = [scored_table(getfield(squad, f), score_off) for f in names(squad)]
-score(squad::Defense) = scored_table(squad, score_def)
-score(squad::SpecialTeams) = score_table(squad.off, score_st_off) + score_table(squad.st, score_st)
-score(squad::Kicker) = scored_table(squad, score_k)
+score(squad::Offense) = score_squad(squad, OFF_COL_MAP, score_off)
+
+score(squad::Kicker) = score_squad(squad, K_COL_MAP, score_k)
+
+function score(squad::DefenseST)
+  def = score_table(squad.def, DEF_ST_COL_MAP, score_def_st)
+  wr = score_table(squad.wr, DEF_ST_COL_MAP, score_def_st)
+  # Transfer wr s/t scores to DEF for purposes of fantasy scoring
+  # @byrow wr begin
+  #   def[:team_abbr]
+  # end
+  def
+end

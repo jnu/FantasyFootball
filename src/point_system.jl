@@ -36,3 +36,10 @@ const PTS_ALLOWED_PTS = {
   (35, -3),
   (46, -5)
 }
+
+# Kicker
+const FG_MISS_PTS = -1
+const XP_MADE_PTS = 1
+const FG_0039_PTS = 3
+const FG_4049_PTS = 4
+const FG_50_PTS = 5

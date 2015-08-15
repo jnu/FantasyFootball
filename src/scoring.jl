@@ -20,7 +20,7 @@ function score_off(; rush_yds = 0, rush_td = 0, rec_yds = 0, rec_td = 0, pass_yd
   )
 end
 
-get_points_allowed_pts(papg::Real)
+function get_points_allowed_pts(papg::Real)
   cur = PTS_ALLOWED_PTS[1]
   for bin in PTS_ALLOWED_PTS
     if papg < bin[1]
@@ -29,11 +29,12 @@ get_points_allowed_pts(papg::Real)
       cur = bin
     end
   end
+end
 
 # Score a team's defense
 #  - No blocks
 #  - Points allowed is just an average
-function score_def(; games = 0, papg = 0, kr_td = 0, pr_td = 0, int_td = 0, fum_td = 0, sack = 0, sfty = 0)
+function score_def_st(; games = 0, papg = 0, kr_td = 0, pr_td = 0, int_td = 0, fum_td = 0, sack = 0, sfty = 0)
   (
     games * get_points_allowed_pts(papg) +
     kr_td * DEF_KR_TD_PTS +
@@ -45,3 +46,12 @@ function score_def(; games = 0, papg = 0, kr_td = 0, pr_td = 0, int_td = 0, fum_
   )
 end
 
+function score_k(; xp_made = 0, xp_att = 0, fg_made = 0, fg_att = 0, f0019 = 0, f2029 = 0, f3039 = 0, f4049 = 0, f50 = 0)
+  (
+    xp_made * XP_MADE_PTS +
+    (xp_att - xp_made + fg_att - fg_made) * FG_MISS_PTS +
+    (f0019 + f2029 + f3039) * FG_0039_PTS +
+    f4049 * FG_4049_PTS +
+    f50 * FG_50_PTS
+  )
+end
