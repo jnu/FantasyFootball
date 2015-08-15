@@ -26,6 +26,13 @@ const DEF_INT_PTS = 2
 const DEF_FUM_R_PTS = 2
 const DEF_SFTY_PTS = 2
 const DEF_SACK_PTS = 1
-const PTS_ALLOWED_PTS = [
-
-]
+const PTS_ALLOWED_PTS = {
+  (0, 5),
+  (1, 4),
+  (7, 3),
+  (14, 1),
+  (18, 0),
+  (28, -1),
+  (35, -3),
+  (46, -5)
+}

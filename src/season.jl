@@ -74,12 +74,12 @@ function with_team_abbr!(df::DataFrame)
   df
 end
 
-# Add a fantasy score column to the data frame (offensive)
-function score_off_table(df::DataFrame)
+# Add a fantasy score column to the data frame
+function score_table(df::DataFrame, f::Function)
   # Julia doesn't support conditional list comprehensions or tuple destructuring,
   # so this is a bit of a mess. TODO - implement in julia?
   columns = [(pair[1], haskey(df, pair[2]) ? df[pair[2]] : 0) for pair in COLUMN_MAP]
-  @transform(df, score = score_off(; columns...))
+  @transform(df, score = f(; columns...))
 end
 
 
@@ -87,15 +87,34 @@ end
 # Type def
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# Season type - holds tables for positions in a given year
-immutable Season
+abstract Squad
+
+immutable Offense <: Squad
   qb::DataFrame
   rb::DataFrame
   wr::DataFrame
   te::DataFrame
-  st::DataFrame
+end
+
+immutable Defense <: Squad
   def::DataFrame
+end
+
+immutable SpecialTeams <: Squad
+  st::DataFrame
+  off::DataFrame
+end
+
+immutable Kicker <: Squad
   k::DataFrame
+end
+
+# Season type - holds tables for positions in a given year
+immutable Season
+  off::Offense
+  def::Defense
+  st::SpecialTeams
+  k::Kicker
 
   function Season(year::String)
     tables = map(p -> with_team_abbr!(readtable(table_path(year, p))), ["QB", "RB", "WR", "TE", "ST", "DEF", "K"])
@@ -107,7 +126,7 @@ immutable Season
   end
 
   function Season(qb::DataFrame, rb::DataFrame, wr::DataFrame, te::DataFrame, st::DataFrame, def::DataFrame, k::DataFrame)
-    new(qb, rb, wr, te, st, def, k)
+    new(Offense(qb, rb, wr, te), Defense(def), SpecialTeams(st, off), Kicker(k))
   end
 end
 
@@ -124,7 +143,11 @@ end
 
 # Add fantasy score column to all frames in a season
 function score(season::Season)
-  # TODO - split def and off
-  scored = [score_off_table(getfield(season, f)) for f in names(season)]
+  scored = [score(season.off), score(season.def), score(season.st), score(season.k)]
   Season(scored...)
 end
+
+score(squad::Offense) = [scored_table(getfield(squad, f), score_off) for f in names(squad)]
+score(squad::Defense) = scored_table(squad, score_def)
+score(squad::SpecialTeams) = score_table(squad.off, score_st_off) + score_table(squad.st, score_st)
+score(squad::Kicker) = scored_table(squad, score_k)
