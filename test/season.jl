@@ -6,6 +6,7 @@ module TestSeason
   # Construction
   s10 = Season(2010)
   s10s = Season("2010")
+  s10c = Season(s10.off, s10.def, s10.k)
   s11 = Season(2011)
   s12 = Season(2012)
   s13 = Season(2013)
@@ -18,10 +19,12 @@ module TestSeason
   @test typeof(s10.off.rb) == DataFrame
   @test typeof(s10.off.te) == DataFrame
   @test typeof(s10.off.wr) == DataFrame
-  # @test typeof(s10.st) == DataFrame
   @test typeof(s10.def.def) == DataFrame
   @test typeof(s10.def.wr) == DataFrame
   @test typeof(s10.k.k) == DataFrame
+  @test s10c.off == s10.off
+  @test s10c.def == s10.def
+  @test s10c.k == s10.k
 
 
   # filter
