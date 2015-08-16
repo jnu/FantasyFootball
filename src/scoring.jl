@@ -29,6 +29,7 @@ function get_points_allowed_pts(papg::Real)
       cur = bin
     end
   end
+  return cur[2]
 end
 
 # Score a team's defense
@@ -49,7 +50,7 @@ end
 function score_k(; xp_made = 0, xp_att = 0, fg_made = 0, fg_att = 0, f0019 = 0, f2029 = 0, f3039 = 0, f4049 = 0, f50 = 0)
   (
     xp_made * XP_MADE_PTS +
-    (xp_att - xp_made + fg_att - fg_made) * FG_MISS_PTS +
+    (max(xp_att - xp_made, 0) + max(fg_att - fg_made, 0)) * FG_MISS_PTS +
     (f0019 + f2029 + f3039) * FG_0039_PTS +
     f4049 * FG_4049_PTS +
     f50 * FG_50_PTS

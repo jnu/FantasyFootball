@@ -42,6 +42,10 @@ immutable Season
   function Season(qb::DataFrame, rb::DataFrame, wr::DataFrame, te::DataFrame, def::DataFrame, k::DataFrame)
     new(Offense(qb, rb, wr, te), DefenseST(def, wr), Kicker(k))
   end
+
+  function Season(off::Offense, def::DefenseST, k::Kicker)
+    new(off, def, k)
+  end
 end
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -96,19 +100,24 @@ const OFF_COL_MAP = {
   (:sack, :Sack),
   (:fum_l, :FumL),
   # Def / ST
-  (:pr_td, :PRTD),
-  (:kr_td, :KRTD)
+  # (:pr_td, :PRTD),
+  # (:kr_td, :KRTD)
 }
 
-const DEF_ST_COL_MAP = {
-  (:pr_td, :PRTD),
-  (:kr_td, :KRTD),
+const DEF_COL_MAP = {
+  # (:pr_td, :PRTD),
+  # (:kr_td, :KRTD),
   (:games, :G),
   (:papg, symbol("Pts/G")),
   (:int_td, :IntTD),
   (:fum_td, :DefTD), # not quite right
   (:sack, :Sack)
   # (:sfty, :Safety) # Not available?
+}
+
+const WR_ST_COL_MAP = {
+  (:pr_td, :PRTD),
+  (:kr_td, :KRTD)
 }
 
 const K_COL_MAP = {
@@ -142,15 +151,11 @@ function with_team_abbr!(df::DataFrame)
 end
 
 # Add a fantasy score column to the data frame
-function score_table(df::DataFrame, col_map::Array, f::Function,)
+function score_table(df::DataFrame, col_map::Array, f::Function)
   # Julia doesn't support conditional list comprehensions or tuple destructuring,
   # so this is a bit of a mess. TODO - implement in julia?
   columns = [(pair[1], haskey(df, pair[2]) ? df[pair[2]] : 0) for pair in col_map]
   @transform(df, score = f(; columns...))
-end
-
-function score_squad(squad::Squad, col_map::Array, score::Function)
-  [score_table(getfield(squad, f), col_map, score) for f in names(squad)]
 end
 
 
@@ -158,34 +163,43 @@ end
 # Public functions on Seasons and Squads
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# Filter a squad by team
-function filter_squad(squad::Squad, team::String)
-  [@where(getfield(squad, f), :team_abbr .== team) for f in names(squad)]
-end
-
 # Filter a season by team
 function filter(season::Season, team::String)
-  # FIXME: Filter defense without wr
-  def = filter_squad(season.def, team)[1]
-  Season([filter_squad(season.off, team), def, filter_squad(season.k, team)]...)
+  Season(filter(season.off, team), filter(season.def, team), filter(season.k, team))
 end
+
+function filter(squad::Offense, team::String)
+  filtered = [@where(getfield(squad, f), :team_abbr .== team) for f in [:qb, :rb, :wr, :te]]
+  Offense(filtered...)
+end
+
+function filter(squad::Kicker, team::String)
+  Kicker(@where(squad.k, :team_abbr .== team))
+end
+
+function filter(squad::DefenseST, team::String)
+  filtered = [@where(getfield(squad, f), :team_abbr .== team) for f in [:def, :wr]]
+  DefenseST(filtered...)
+end
+
 
 # Add fantasy score column to all frames in a season
 function score(season::Season)
-  scored = [score(season.off), score(season.def), score(season.k)]
-  Season(scored...)
+  Season(score(season.off), score(season.def), score(season.k))
 end
 
-score(squad::Offense) = score_squad(squad, OFF_COL_MAP, score_off)
+function score(squad::Offense)
+  scored = [score_table(getfield(squad, f), OFF_COL_MAP, score_off) for f in [:qb, :rb, :wr, :te]]
+  Offense(scored...)
+end
 
-score(squad::Kicker) = score_squad(squad, K_COL_MAP, score_k)
+function score(squad::Kicker)
+  Kicker(score_table(squad.k, K_COL_MAP, score_k))
+end
 
 function score(squad::DefenseST)
-  def = score_table(squad.def, DEF_ST_COL_MAP, score_def_st)
-  wr = score_table(squad.wr, DEF_ST_COL_MAP, score_def_st)
-  # Transfer wr s/t scores to DEF for purposes of fantasy scoring
-  # @byrow wr begin
-  #   def[:team_abbr]
-  # end
-  def
+  def = score_table(squad.def, DEF_COL_MAP, score_def_st)
+  wr = score_table(squad.wr, WR_ST_COL_MAP, score_def_st)
+  # FIXME: transfer wr scores to def table
+  DefenseST(def, wr)
 end
