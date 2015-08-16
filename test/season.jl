@@ -87,7 +87,8 @@ module TestSeason
   @test sort(nwe14s.off.te[:score]) == [0, 4, 49, 160]
   @test sort(nwe14s.off.rb[:score]) == [4, 5, 14, 48, 71, 87, 113]
   @test sort(nwe14s.k.k[:score]) == [49]
-  @test sort(nwe14s.def.def[:score]) == [132]
+  @test sort(nwe14s.def.def[:score]) == [138]
+  @test sort(nwe14s.def.def[:score_def]) == [132]
   @test sort(nwe14s.def.wr[:score]) == [0, 0, 0, 0, 0, 6]
 
   # Score - specific dispatch
@@ -99,7 +100,8 @@ module TestSeason
   nwe14ks = score(nwe14.k)
   @test sort(nwe14ks.k[:score]) == [49]
   nwe14ds = score(nwe14.def)
-  @test sort(nwe14ds.def[:score]) == [132]
+  @test sort(nwe14ds.def[:score]) == [138]
+  @test sort(nwe14ds.def[:score_def]) == [132]
   @test sort(nwe14ds.wr[:score]) == [0, 0, 0, 0, 0, 6]
 
 

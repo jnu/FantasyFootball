@@ -198,8 +198,15 @@ function score(squad::Kicker)
 end
 
 function score(squad::DefenseST)
-  def = score_table(squad.def, DEF_COL_MAP, score_def_st)
+  # Score defensive team alone, sort by team
+  def = sort(score_table(squad.def, DEF_COL_MAP, score_def_st), cols = [:team_abbr])
+  # Score offensive team on their special teams plays
   wr = score_table(squad.wr, WR_ST_COL_MAP, score_def_st)
-  # FIXME: transfer wr scores to def table
-  DefenseST(def, wr)
+  # Group offensive players by their team to get an aggregate, sort in same
+  # order as defense
+  g_wr = sort(by(wr, :team_abbr, df -> sum(df[:score])), cols = [:team_abbr])
+  # Combine defense and special teams by team. Add original defensive score in
+  # a separate column for reference if needed.
+  t_def = transform(def, score_def = def[:score], score = def[:score] + g_wr[:x1])
+  DefenseST(t_def, wr)
 end
