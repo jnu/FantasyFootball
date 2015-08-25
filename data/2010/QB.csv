@@ -1,4 +1,4 @@
-Name,Team,G,QBRat,Comp,Att,Pct,PassYds,PassYG,YdsAtt,TD,Int,Rush,RushYds,RushYG,RushAvg,RushTD,Sack,SackYds,Fum,FumL
+Name,Team,G,QBRat,Comp,Att,Pct,Yds,Y/G,Y/A,TD,Int,Rush,RushYds,RushY/G,RushAvg,RushTD,Sack,YdsL,Fum,FumL
 Tom Brady,NWE,16,111.0,324,492,65.9,3900,243.8,7.9,36,4,31,30,1.9,1.0,1,25,175,3,1
 Philip Rivers,SDG,16,101.8,357,541,66.0,4710,294.4,8.7,30,13,29,52,3.3,1.8,0,38,227,7,4
 Aaron Rodgers,GNB,15,101.2,312,475,65.7,3922,261.5,8.3,28,11,64,356,23.7,5.6,4,31,193,4,1

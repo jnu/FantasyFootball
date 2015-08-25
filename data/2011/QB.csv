@@ -1,4 +1,4 @@
-Name,Team,G,QBRat,Comp,Att,Pct,PassYds,PassYG,YdsAtt,TD,Int,Rush,RushYds,RushYG,RushAvg,RushTD,Sack,SackYds,Fum,FumL
+Name,Team,G,QBRat,Comp,Att,Pct,Yds,Y/G,Y/A,TD,Int,Rush,RushYds,RushY/G,RushAvg,RushTD,Sack,YdsL,Fum,FumL
 Matt Flynn,GNB,5,124.8,33,49,67.3,518,103.6,10.6,6,2,13,-6,-1.2,-0.5,1,5,18,1,1
 Aaron Rodgers,GNB,15,122.5,343,502,68.3,4643,309.5,9.2,45,6,60,257,17.1,4.3,3,36,219,4,0
 Tyrod Taylor,BAL,3,118.8,1,1,100,18,6,18,0,0,1,2,0.7,2,0,2,3,0,0

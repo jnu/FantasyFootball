@@ -1,4 +1,4 @@
-Name,Team,G,Rec,Rec Tgt,Rec Yds,Rec YG,Rec Avg,Rec Lng,YAC,Rec 1stD,Rec TD,KR,KR Yds,KR Avg,KR Lng,KR TD,PR,PR Yds,PR Avg,PR Long,PR TD,Fum,FumL
+Name,Team,G,Rec,Tgt,RecYds,RecY/G,RecAvg,RecLng,YAC,1stD,RecTD,KR,KRYds,KRAvg,KRLong,KRTD,PR,PRYds,PRAvg,PRLong,PRTD,Fum,FumL
 Brandon Lloyd,DEN,16,77,153,1448,90.5,18.8,71,2.9,72,11,0,0,,0,0,0,0,,0,0,0,0
 Roddy White,ATL,16,115,179,1389,86.8,12.1,46,3.3,73,10,0,0,,0,0,0,0,,0,0,1,1
 Reggie Wayne,IND,16,111,176,1355,84.7,12.2,50,3.9,72,6,0,0,0,0,0,0,0,0,0,0,1,1
