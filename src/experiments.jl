@@ -4,7 +4,7 @@ using DataFrames, DataFramesMeta
 using StatsBase
 
 # include stat functions that can work around NAs
-include("src/stat.jl")
+include("stat.jl")
 
 gradient = Scale.ContinuousColorScale(Scale.lab_gradient(color("white"), RGB(0.5, 0, 0), color("red")))
 
@@ -63,7 +63,7 @@ get_tables(pos) = [sort(getfield(s.off, pos), cols = [:score], rev = true)[[:Nam
 function get_all_years(pos)
     table = join_pos(get_tables(pos))
     names!(table, [:Name, pt_cols])
-    @transform(table, std2010=zscore_nona(:pts2010), std2011=zscore_nona(:pts2011), std2012=zscore_nona(:pts2012), std2013=zscore_nona(:pts2013), std2014=zscore_nona(:pts2014))
+    @transform(table, std2010=nazscore(:pts2010), std2011=nazscore(:pts2011), std2012=nazscore(:pts2012), std2013=nazscore(:pts2013), std2014=nazscore(:pts2014))
 end
 
 wrs = get_all_years(:wr)
