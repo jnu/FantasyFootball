@@ -72,13 +72,39 @@ tes = get_all_years(:te)
 qbs = get_all_years(:qb)
 
 
-# # QB production over the years
-# # rename score columns for better reading
+std_cols = [:std2010, :std2011, :std2012, :std2013, :std2014]
+function best_of_2014(table, n=100)
+    top = sort(@where(table, !isna(:std2014)), cols=[sym], rev=true)[[:Name, std_cols]]
+    top_lng = @where(melt(top[1:n,:], :Name), !isna(:value))
+end
 
-#
-# # Look at top N qbs in 2014 and see their previous seasons
-# top_qbs = sort(all_qb_norm, cols = [:norm2014], rev = true)[[:Name, :norm2010, :norm2011, :norm2012, :norm2013, :norm2014]]
-# top_qbs_lng = melt(top_qbs[1:20,:], :Name)
-# qbs_line = plot(top_qbs_lng, x = :variable, y = :value, color = :Name, Geom.line, Guide.title("Top 2014 QBs points over time"))
-# draw(SVG(joinpath(dir, "top_qb_over_time.svg"), 30cm, 12cm), qbs_line)
 
+import Base.max
+function max{T<:Real}(cols::DataArray{T}...)
+    Z = DataArray(T, size(cols[1]))
+    for i in 1:length(cols[1])
+        @inbounds Z[i] = max([isna(col[i]) ? -Inf : col[i] for col in cols]...)
+    end
+    Z
+end
+
+function best_ever(table, n)
+    tbl = @transform(table[[:Name, std_cols]], max = max(:std2010, :std2011, :std2012, :std2013, :std2014))
+    best = sort(tbl, cols=[:max], rev=true)[1:n,:]
+    top_melt = melt(best[[:Name, std_cols]], :Name)
+    sort(@where(top_melt, !isna(:value)), cols=[:variable, :value])
+end
+
+_top_line(df) = plot(df, x=:variable, y=:value, color=:Name, Geom.line)
+_top_rect(df) = plot(df, x=:variable, y=:Name, color=:value, Geom.rectbin)
+
+top2014_line(table, n=10) = _top_line(best_of_2014(table, n))
+top2014_rect(table, n=20) = _top_rect(best_of_2014(table, n))
+best_line(table, n=20) = _top_line(best_ever(table, n))
+best_rect(table, n=20) = _top_rect(best_ever(table, n))
+
+
+
+
+
+function
