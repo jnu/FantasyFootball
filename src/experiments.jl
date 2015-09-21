@@ -58,18 +58,20 @@ pt_cols = [symbol("pts$(s)") for s in 2010:2014]
 # e.g.
 # qbs = [sort(s.off.qb), cols = [:score], rev = true)[[:Name, :score]] for s in seasons]
 # all_qb = reduce((a, b) -> join(a, b, on = :Name, kind = :outer), qbs)
-join_pos(pos) = reduce((a, b) -> join(a, b, on = :Name, kind = :outer), pos)
-get_tables(pos) = [sort(getfield(s.off, pos), cols = [:score], rev = true)[[:Name, :score]] for s in seasons]
-function get_all_years(pos)
-    table = join_pos(get_tables(pos))
-    names!(table, [:Name, pt_cols])
+join_pos(pos, j) = reduce((a, b) -> join(a, b, on = j, kind = :outer), pos)
+get_tables(pos, j) = [sort(getfield(s.off, pos), cols = [:score], rev = true)[[j, :score]] for s in seasons]
+get_tables(p1, p2, j) = [sort(getfield(getfield(s, p1), p2), cols = [:score], rev = true)[[j, :score]] for s in seasons]
+function get_all_years(p1, p2, j=:Name)
+    table = join_pos(get_tables(p1, p2), j)
+    names!(table, [j, pt_cols])
     @transform(table, std2010=nazscore(:pts2010), std2011=nazscore(:pts2011), std2012=nazscore(:pts2012), std2013=nazscore(:pts2013), std2014=nazscore(:pts2014))
 end
 
-wrs = get_all_years(:wr)
-rbs = get_all_years(:rb)
-tes = get_all_years(:te)
-qbs = get_all_years(:qb)
+wrs = get_all_years(:off, :wr)
+rbs = get_all_years(:off, :rb)
+tes = get_all_years(:off, :te)
+qbs = get_all_years(:off, :qb)
+def = get_all_years(:def, :def, :team_abbr)
 
 
 std_cols = [:std2010, :std2011, :std2012, :std2013, :std2014]
@@ -104,7 +106,3 @@ best_line(table, n=20) = _top_line(best_ever(table, n))
 best_rect(table, n=20) = _top_rect(best_ever(table, n))
 
 
-
-
-
-function
