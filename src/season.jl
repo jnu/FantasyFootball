@@ -30,7 +30,7 @@ immutable Season
   def::DefenseST
   k::Kicker
 
-  function Season(year::String)
+  function Season(year::AbstractString)
     tables = map(p -> with_team_abbr!(readtable(table_path(year, p))), ["QB", "RB", "WR", "TE", "DEF", "K"])
     Season(tables[1], tables[2], tables[3], tables[4], tables[5], tables[6])
   end
@@ -53,7 +53,7 @@ end
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-const ABBR_LOOKUP = [
+const ABBR_LOOKUP = Dict(
   "Arizona Cardinals" => "ARI",
   "Atlanta Falcons" => "ATL",
   "Baltimore Ravens" => "BAL",
@@ -86,9 +86,9 @@ const ABBR_LOOKUP = [
   "Tampa Bay Buccaneers" => "TAM",
   "Tennessee Titans" => "TEN",
   "Washington Redskins" => "WAS"
-]
+)
 
-const OFF_COL_MAP = {
+const OFF_COL_MAP = Any[
   # Offensive
   (:rush_yds, :RushYds),
   (:rush_td, :RushTD),
@@ -102,9 +102,9 @@ const OFF_COL_MAP = {
   # Def / ST
   # (:pr_td, :PRTD),
   # (:kr_td, :KRTD)
-}
+]
 
-const DEF_COL_MAP = {
+const DEF_COL_MAP = Any[
   # (:pr_td, :PRTD),
   # (:kr_td, :KRTD),
   (:games, :G),
@@ -113,14 +113,14 @@ const DEF_COL_MAP = {
   (:fum_td, :DefTD), # not quite right
   (:sack, :Sack)
   # (:sfty, :Safety) # Not available?
-}
+]
 
-const WR_ST_COL_MAP = {
+const WR_ST_COL_MAP = Any[
   (:pr_td, :PRTD),
   (:kr_td, :KRTD)
-}
+]
 
-const K_COL_MAP = {
+const K_COL_MAP = Any[
   (:xp_made, :XPM),
   (:xp_att, :XPA),
   (:fg_made, :FGM),
@@ -130,7 +130,7 @@ const K_COL_MAP = {
   (:f3039, symbol("M30-39")),
   (:f4049, symbol("M40-49")),
   (:f50, symbol("M50+"))
-}
+]
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -138,10 +138,10 @@ const K_COL_MAP = {
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Get the table logical path relative to current script by year and position
-table_logical_path(year::String, position::String) = joinpath(dirname(@__FILE__), "..", "data", year, position)
+table_logical_path(year::String, position::AbstractString) = joinpath(dirname(@__FILE__), "..", "data", year, position)
 
 # Get the FS path relative to the current location for the year and position
-table_path(year::String, position::String) = string(table_logical_path(year, position), ".csv")
+table_path(year::String, position::AbstractString) = string(table_logical_path(year, position), ".csv")
 
 # Ensure that tables have a normalized key for access by team
 function with_team_abbr!(df::DataFrame)
@@ -164,20 +164,20 @@ end
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Filter a season by team
-function filter(season::Season, team::String)
+function filter(season::Season, team::AbstractString)
   Season(filter(season.off, team), filter(season.def, team), filter(season.k, team))
 end
 
-function filter(squad::Offense, team::String)
+function filter(squad::Offense, team::AbstractString)
   filtered = [@where(getfield(squad, f), :team_abbr .== team) for f in [:qb, :rb, :wr, :te]]
   Offense(filtered...)
 end
 
-function filter(squad::Kicker, team::String)
+function filter(squad::Kicker, team::AbstractString)
   Kicker(@where(squad.k, :team_abbr .== team))
 end
 
-function filter(squad::DefenseST, team::String)
+function filter(squad::DefenseST, team::AbstractString)
   filtered = [@where(getfield(squad, f), :team_abbr .== team) for f in [:def, :wr]]
   DefenseST(filtered...)
 end

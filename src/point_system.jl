@@ -26,7 +26,7 @@ const DEF_INT_PTS = 2
 const DEF_FUM_R_PTS = 2
 const DEF_SFTY_PTS = 2
 const DEF_SACK_PTS = 1
-const PTS_ALLOWED_PTS = {
+const PTS_ALLOWED_PTS = Any[
   (0, 5),
   (1, 4),
   (7, 3),
@@ -35,7 +35,7 @@ const PTS_ALLOWED_PTS = {
   (28, -1),
   (35, -3),
   (46, -5)
-}
+]
 
 # Kicker
 const FG_MISS_PTS = -1
