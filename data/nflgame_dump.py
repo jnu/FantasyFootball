@@ -80,7 +80,7 @@ def week_id(week):
 if __name__ == "__main__":
     this_year = date.today().year
 
-    out_dir = argv[1]
+    out_dir = argv[1] if len(argv) > 0 else None
 
     if out_dir is None:
         raise Exception("Need to specify output directory")

@@ -1,4 +1,4 @@
-julia 0.3.11
+julia 0.4.6
 Gadfly 0.3.13
 DataFrames 0.6.8
 DataFramesMeta 0.0.1
